@@ -21,6 +21,7 @@ FlareWindow* Window_Create(int width, int height, const char *title);
 void Window_Destroy(FlareWindow *win);
 
 // Native Win32 operations
+void Window_TrimMemory(void);
 void Window_ApplyWin32Styles(FlareWindow *win);
 void Window_CenterOnActiveMonitor(FlareWindow *win);
 void Window_Show(FlareWindow *win);

@@ -13,11 +13,10 @@ int main(void) {
     Window_SetDpiAwareness();
 
     // 1. Configure raylib window flags
-    // Undecorated borderless floating launcher, topmost, always running
+    // Undecorated borderless floating launcher, topmost, always running (2D optimized)
     SetConfigFlags(FLAG_WINDOW_UNDECORATED | 
                    FLAG_WINDOW_TOPMOST | 
-                   FLAG_WINDOW_ALWAYS_RUN | 
-                   FLAG_MSAA_4X_HINT);
+                   FLAG_WINDOW_ALWAYS_RUN);
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flare");
     SetTargetFPS(60);
@@ -64,6 +63,9 @@ int main(void) {
         win->height = initialHeight;
         SetWindowSize(win->width, initialHeight);
     }
+
+    // Release startup initialization memory and DLL load working set
+    Window_TrimMemory();
 
     // 4. Main application loop
     while (!WindowShouldClose()) {
@@ -165,6 +167,7 @@ int main(void) {
         // Hide Win32 window once closing animation has finished
         if (anim.state == ANIM_STATE_CLOSED && win->is_visible) {
             Window_Hide(win);
+            Window_TrimMemory();
         }
 
         // Low power mode when launcher is hidden (saves CPU cycles)
@@ -178,6 +181,15 @@ int main(void) {
         BeginDrawing();
         Renderer_RenderFlare(win, &anim, &kb, &search);
         EndDrawing();
+
+        // Release all startup and driver initialization RAM once initial frames settle
+        static int s_settleFrames = 0;
+        if (s_settleFrames < 3) {
+            s_settleFrames++;
+            if (s_settleFrames == 3) {
+                Window_TrimMemory();
+            }
+        }
     }
 
     // 5. Cleanup and shutdown

@@ -6,24 +6,23 @@
 #include <string.h>
 #include <stdlib.h>
 
-// Multi-size font system for crystal-clear typography (+20% scaled)
+// Multi-size font system for crystal-clear typography (RAM optimized)
 static Font s_fontInput = { 0 };
 static Font s_fontTitle = { 0 };
 static Font s_fontSubtitle = { 0 };
-static Font s_fontSection = { 0 };
-static Font s_fontFooter = { 0 };
 static bool s_hasCustomFonts = false;
 
-// Icon Cache for extracted application textures
+// Bounded Ring-Buffer Icon Cache (32 textures max)
 typedef struct {
     char path[260];
     Texture2D texture;
     bool loaded;
 } CachedIcon;
 
-#define MAX_CACHED_ICONS 128
+#define MAX_CACHED_ICONS 32
 static CachedIcon s_iconCache[MAX_CACHED_ICONS];
 static int s_iconCacheCount = 0;
+static int s_iconCacheHead = 0;
 
 static Font LoadCrispFont(const char *fontPath, int size) {
     Font f = LoadFontEx(fontPath, size, NULL, 0);
@@ -42,16 +41,12 @@ void Renderer_Init(void) {
         s_fontInput    = LoadCrispFont(boldPath, 28);
         s_fontTitle    = LoadCrispFont(boldPath, 22);
         s_fontSubtitle = LoadCrispFont(regularPath, 17);
-        s_fontSection  = LoadCrispFont(boldPath, 15);
-        s_fontFooter   = LoadCrispFont(regularPath, 15);
         s_hasCustomFonts = true;
     } else {
         Font def = GetFontDefault();
         s_fontInput    = def;
         s_fontTitle    = def;
         s_fontSubtitle = def;
-        s_fontSection  = def;
-        s_fontFooter   = def;
         s_hasCustomFonts = false;
     }
 }
@@ -61,8 +56,6 @@ void Renderer_Cleanup(void) {
         UnloadFont(s_fontInput);
         UnloadFont(s_fontTitle);
         UnloadFont(s_fontSubtitle);
-        UnloadFont(s_fontSection);
-        UnloadFont(s_fontFooter);
         s_hasCustomFonts = false;
     }
 
@@ -72,6 +65,7 @@ void Renderer_Cleanup(void) {
         }
     }
     s_iconCacheCount = 0;
+    s_iconCacheHead = 0;
 }
 
 static Texture2D GetOrLoadAppIcon(const char *path) {
@@ -81,10 +75,6 @@ static Texture2D GetOrLoadAppIcon(const char *path) {
         if (_stricmp(s_iconCache[i].path, path) == 0) {
             return s_iconCache[i].texture;
         }
-    }
-
-    if (s_iconCacheCount >= MAX_CACHED_ICONS) {
-        return (Texture2D){ 0 };
     }
 
     int w = 0, h = 0;
@@ -104,7 +94,18 @@ static Texture2D GetOrLoadAppIcon(const char *path) {
     SetTextureFilter(tex, TEXTURE_FILTER_TRILINEAR);
     UnloadImage(img);
 
-    int idx = s_iconCacheCount++;
+    int idx;
+    if (s_iconCacheCount < MAX_CACHED_ICONS) {
+        idx = s_iconCacheCount++;
+    } else {
+        // Evict oldest texture in bounded ring-buffer to keep RAM strictly capped
+        idx = s_iconCacheHead;
+        s_iconCacheHead = (s_iconCacheHead + 1) % MAX_CACHED_ICONS;
+        if (s_iconCache[idx].loaded) {
+            UnloadTexture(s_iconCache[idx].texture);
+        }
+    }
+
     strncpy(s_iconCache[idx].path, path, sizeof(s_iconCache[idx].path) - 1);
     s_iconCache[idx].path[sizeof(s_iconCache[idx].path) - 1] = '\0';
     s_iconCache[idx].texture = tex;
@@ -254,7 +255,7 @@ void Renderer_RenderFlare(const FlareWindow *win,
     // 3. Section Header ("SUGGESTIONS" or "APPLICATIONS & COMMANDS")
     float sectionY = headerH + 16.0f;
     const char *sectionTitle = search->is_showing_suggestions ? "SUGGESTIONS" : "APPLICATIONS & COMMANDS";
-    DrawTextEx(s_fontSection, sectionTitle, (Vector2){ 30.0f, sectionY }, 15.0f, 1.0f, (Color){ 140, 145, 158, 220 });
+    DrawTextEx(s_fontTitle, sectionTitle, (Vector2){ 30.0f, sectionY }, 15.0f, 1.0f, (Color){ 140, 145, 158, 220 });
 
     // 4. Search Results List (+20% scaled)
     float listY = sectionY + 28.0f;
@@ -340,8 +341,8 @@ void Renderer_RenderFlare(const FlareWindow *win,
     // 5. Clean Footer Navigation Hints (Standard ASCII, zero '?' marks)
     float footerY = h - 30.0f;
     const char *hints = "Press Enter to open   |   Up / Down to navigate   |   Esc to close";
-    Vector2 hMetrics = MeasureTextEx(s_fontFooter, hints, 15.0f, 1.0f);
-    DrawTextEx(s_fontFooter, hints,
+    Vector2 hMetrics = MeasureTextEx(s_fontSubtitle, hints, 15.0f, 1.0f);
+    DrawTextEx(s_fontSubtitle, hints,
                (Vector2){ (w - hMetrics.x) / 2.0f, footerY },
                15.0f, 1.0f, (Color){ 120, 126, 138, 190 });
 }

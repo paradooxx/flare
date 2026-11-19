@@ -121,6 +121,10 @@ void Window_Destroy(FlareWindow *win) {
     free(win);
 }
 
+void Window_TrimMemory(void) {
+    SetProcessWorkingSetSize(GetCurrentProcess(), (SIZE_T)-1, (SIZE_T)-1);
+}
+
 void Window_ApplyWin32Styles(FlareWindow *win) {
     if (!win || !win->hwnd) return;
     HWND hwnd = (HWND)win->hwnd;
