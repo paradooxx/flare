@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "applications.h"
+#include "history.h"
 
 #define MAX_SEARCH_RESULTS 24
 #define MAX_VISIBLE_ROWS    7
@@ -27,8 +28,8 @@ typedef struct {
 
 void Search_Init(SearchEngine *engine);
 void Search_Cleanup(SearchEngine *engine);
-void Search_PopulateSuggestions(SearchEngine *engine, const ApplicationCache *apps);
-void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const char *query);
+void Search_PopulateSuggestions(SearchEngine *engine, const ApplicationCache *apps, const HistoryManager *hist);
+void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const HistoryManager *hist, const char *query);
 void Search_SelectNext(SearchEngine *engine);
 void Search_SelectPrev(SearchEngine *engine);
 

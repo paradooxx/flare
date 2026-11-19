@@ -46,51 +46,50 @@ static void AddResult(SearchEngine *engine, const ApplicationItem *item, int sco
     res->match_score = score;
 }
 
-void Search_PopulateSuggestions(SearchEngine *engine, const ApplicationCache *apps) {
+void Search_PopulateSuggestions(SearchEngine *engine, const ApplicationCache *apps, const HistoryManager *hist) {
     if (!engine) return;
     engine->result_count = 0;
     engine->selected_index = 0;
     engine->scroll_offset = 0;
     engine->is_showing_suggestions = true;
 
-    if (!apps || apps->count == 0) return;
+    // 1. Populate from the last 5 used apps in history
+    if (hist && hist->count > 0) {
+        int count = hist->count > MAX_HISTORY_ITEMS ? MAX_HISTORY_ITEMS : hist->count;
+        for (int i = 0; i < count; i++) {
+            if (engine->result_count >= MAX_SEARCH_RESULTS) break;
 
-    // Ordered list of preferred suggestions matching user UI
-    const char *preferred[] = {
-        "Quit All Apps",
-        "Google Chrome",
-        "Brave Browser",
-        "Spotify",
-        "Warp",
-        "Command Prompt",
-        "Create Reminder",
-        "Task Manager",
-        "Calculator",
-        "Notepad",
-        "Settings"
-    };
+            SearchResultItem *res = &engine->results[engine->result_count++];
+            strncpy(res->title, hist->items[i].name, sizeof(res->title) - 1);
+            res->title[sizeof(res->title) - 1] = '\0';
 
-    // First, add existing preferred suggestions
-    for (size_t p = 0; p < sizeof(preferred) / sizeof(preferred[0]); p++) {
-        for (int i = 0; i < apps->count; i++) {
-            if (_stricmp(apps->items[i].name, preferred[p]) == 0) {
-                AddResult(engine, &apps->items[i], 100);
-                break;
-            }
+            strncpy(res->subtitle, hist->items[i].subtitle, sizeof(res->subtitle) - 1);
+            res->subtitle[sizeof(res->subtitle) - 1] = '\0';
+
+            strncpy(res->category_label, "Recent", sizeof(res->category_label) - 1);
+            res->category_label[sizeof(res->category_label) - 1] = '\0';
+
+            strncpy(res->path, hist->items[i].path, sizeof(res->path) - 1);
+            res->path[sizeof(res->path) - 1] = '\0';
+
+            res->is_command = hist->items[i].is_command;
+            res->match_score = 100 - i;
         }
     }
 
-    // If we have fewer than 7 suggestions, fill with other installed apps
-    for (int i = 0; i < apps->count && engine->result_count < 8; i++) {
-        bool alreadyAdded = false;
-        for (int r = 0; r < engine->result_count; r++) {
-            if (strcmp(engine->results[r].title, apps->items[i].name) == 0) {
-                alreadyAdded = true;
-                break;
+    // 2. If history has fewer than 5 items, fill up to 5 with installed apps
+    if (apps && engine->result_count < 5) {
+        for (int i = 0; i < apps->count && engine->result_count < 5; i++) {
+            bool alreadyIn = false;
+            for (int r = 0; r < engine->result_count; r++) {
+                if (_stricmp(engine->results[r].title, apps->items[i].name) == 0) {
+                    alreadyIn = true;
+                    break;
+                }
             }
-        }
-        if (!alreadyAdded) {
-            AddResult(engine, &apps->items[i], 50);
+            if (!alreadyIn) {
+                AddResult(engine, &apps->items[i], 50);
+            }
         }
     }
 }
@@ -154,12 +153,12 @@ static int CalculateMatchScore(const char *name, const char *sub, const char *qL
     return 0;
 }
 
-void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const char *query) {
+void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const HistoryManager *hist, const char *query) {
     if (!engine) return;
 
     if (!query || strlen(query) == 0) {
         engine->query[0] = '\0';
-        Search_PopulateSuggestions(engine, apps);
+        Search_PopulateSuggestions(engine, apps, hist);
         return;
     }
 

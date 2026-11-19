@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "search.h"
 #include "applications.h"
+#include "history.h"
 #include <stdio.h>
 
 int main(void) {
@@ -49,9 +50,13 @@ int main(void) {
     Applications_Init(&apps);
     Applications_BuildIndex(&apps);
 
+    HistoryManager hist;
+    History_Init(&hist);
+    History_Load(&hist, &apps);
+
     SearchEngine search;
     Search_Init(&search);
-    Search_PopulateSuggestions(&search, &apps);
+    Search_PopulateSuggestions(&search, &apps, &hist);
 
     // Initial dynamic panel height based on suggestions
     int initialHeight = Renderer_CalculateHeight(&search);
@@ -70,7 +75,7 @@ int main(void) {
                 Anim_StartClose(&anim);
             } else {
                 Keyboard_Clear(&kb);
-                Search_PopulateSuggestions(&search, &apps);
+                Search_PopulateSuggestions(&search, &apps, &hist);
                 int targetH = Renderer_CalculateHeight(&search);
                 if (win->height != targetH) {
                     win->height = targetH;
@@ -104,6 +109,7 @@ int main(void) {
             if (kb.enter_pressed && search.result_count > 0) {
                 if (search.selected_index >= 0 && search.selected_index < search.result_count) {
                     SearchResultItem *res = &search.results[search.selected_index];
+                    History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
                     Applications_Execute(res->path, res->is_command, res->title);
                     Anim_StartClose(&anim);
                 }
@@ -131,6 +137,7 @@ int main(void) {
                         if (CheckCollisionPointRec(mousePos, rowRec)) {
                             search.selected_index = idx;
                             SearchResultItem *res = &search.results[idx];
+                            History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
                             Applications_Execute(res->path, res->is_command, res->title);
                             Anim_StartClose(&anim);
                             break;
@@ -141,7 +148,7 @@ int main(void) {
 
             // Update search state in real-time when query changed
             if (kb.text_changed) {
-                Search_Execute(&search, &apps, kb.text);
+                Search_Execute(&search, &apps, &hist, kb.text);
             }
 
             // Dynamically adjust window height based on active search/suggestion count
