@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-// Multi-size font system for crystal-clear typography
+// Multi-size font system for crystal-clear typography (+20% scaled)
 static Font s_fontInput = { 0 };
 static Font s_fontTitle = { 0 };
 static Font s_fontSubtitle = { 0 };
@@ -39,11 +39,11 @@ void Renderer_Init(void) {
     const char *regularPath = FileExists(fontRegular) ? fontRegular : fontBold;
 
     if (FileExists(boldPath) || FileExists(regularPath)) {
-        s_fontInput    = LoadCrispFont(boldPath, 24);
-        s_fontTitle    = LoadCrispFont(boldPath, 18);
-        s_fontSubtitle = LoadCrispFont(regularPath, 14);
-        s_fontSection  = LoadCrispFont(boldPath, 13);
-        s_fontFooter   = LoadCrispFont(regularPath, 13);
+        s_fontInput    = LoadCrispFont(boldPath, 28);
+        s_fontTitle    = LoadCrispFont(boldPath, 22);
+        s_fontSubtitle = LoadCrispFont(regularPath, 17);
+        s_fontSection  = LoadCrispFont(boldPath, 15);
+        s_fontFooter   = LoadCrispFont(regularPath, 15);
         s_hasCustomFonts = true;
     } else {
         Font def = GetFontDefault();
@@ -112,7 +112,7 @@ static Texture2D GetOrLoadAppIcon(const char *path) {
     return tex;
 }
 
-// Draw vector icon for system commands
+// Draw vector icon for system commands (+20% scaled)
 static void DrawCommandIcon(float x, float y, float size, const char *title) {
     Rectangle bgRec = { x, y, size, size };
 
@@ -122,10 +122,10 @@ static void DrawCommandIcon(float x, float y, float size, const char *title) {
         DrawRectangleRounded(bgRec, 0.28f, 8, calcBg);
         float cx = x + size / 2.0f;
         float cy = y + size / 2.0f;
-        float lineW = 12.0f;
-        float lineH = 2.4f;
-        DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy - 3.5f, lineW, lineH }, 0.5f, 4, WHITE);
-        DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy + 3.0f, lineW, lineH }, 0.5f, 4, WHITE);
+        float lineW = 14.0f;
+        float lineH = 2.8f;
+        DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy - 4.2f, lineW, lineH }, 0.5f, 4, WHITE);
+        DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy + 3.5f, lineW, lineH }, 0.5f, 4, WHITE);
         return;
     }
 
@@ -140,35 +140,35 @@ static void DrawCommandIcon(float x, float y, float size, const char *title) {
 
     if (strstr(title, "Quit All") != NULL) {
         // Encircled X glyph
-        DrawCircleLines((int)cx, (int)cy, 7.5f, fgColor);
-        float d = 3.8f;
-        DrawLineEx((Vector2){ cx - d, cy - d }, (Vector2){ cx + d, cy + d }, 1.8f, fgColor);
-        DrawLineEx((Vector2){ cx + d, cy - d }, (Vector2){ cx - d, cy + d }, 1.8f, fgColor);
+        DrawCircleLines((int)cx, (int)cy, 9.0f, fgColor);
+        float d = 4.5f;
+        DrawLineEx((Vector2){ cx - d, cy - d }, (Vector2){ cx + d, cy + d }, 2.0f, fgColor);
+        DrawLineEx((Vector2){ cx + d, cy - d }, (Vector2){ cx - d, cy + d }, 2.0f, fgColor);
     } else if (strstr(title, "Reminder") != NULL) {
         // Checkbox glyph with checkmark
-        Rectangle box = { cx - 6.5f, cy - 6.5f, 13.0f, 13.0f };
-        DrawRectangleRoundedLines(box, 0.28f, 4, 1.4f, fgColor);
-        Vector2 p1 = { cx - 3.5f, cy + 0.0f };
-        Vector2 p2 = { cx - 0.5f, cy + 3.2f };
-        Vector2 p3 = { cx + 4.5f, cy - 3.2f };
-        DrawLineEx(p1, p2, 1.8f, fgColor);
-        DrawLineEx(p2, p3, 1.8f, fgColor);
+        Rectangle box = { cx - 7.5f, cy - 7.5f, 15.0f, 15.0f };
+        DrawRectangleRoundedLines(box, 0.28f, 4, 1.5f, fgColor);
+        Vector2 p1 = { cx - 4.0f, cy + 0.0f };
+        Vector2 p2 = { cx - 0.5f, cy + 3.8f };
+        Vector2 p3 = { cx + 5.2f, cy - 3.8f };
+        DrawLineEx(p1, p2, 2.0f, fgColor);
+        DrawLineEx(p2, p3, 2.0f, fgColor);
     } else if (strstr(title, "Lock") != NULL) {
         // Padlock glyph
-        Rectangle lockBody = { cx - 5.5f, cy - 1.0f, 11.0f, 8.0f };
+        Rectangle lockBody = { cx - 6.5f, cy - 1.0f, 13.0f, 9.5f };
         DrawRectangleRounded(lockBody, 0.22f, 4, fgColor);
-        DrawRing((Vector2){ cx, cy - 1.0f }, 3.0f, 4.8f, 180.0f, 360.0f, 16, fgColor);
+        DrawRing((Vector2){ cx, cy - 1.0f }, 3.5f, 5.6f, 180.0f, 360.0f, 16, fgColor);
     } else if (strstr(title, "Recycle") != NULL || strstr(title, "Empty") != NULL) {
         // Trash bin glyph
-        Rectangle binBody = { cx - 4.5f, cy - 1.0f, 9.0f, 8.5f };
-        DrawRectangleRoundedLines(binBody, 0.2f, 4, 1.3f, fgColor);
-        DrawLineEx((Vector2){ cx - 6.0f, cy - 2.5f }, (Vector2){ cx + 6.0f, cy - 2.5f }, 1.4f, fgColor);
-        DrawLineEx((Vector2){ cx - 2.0f, cy - 4.0f }, (Vector2){ cx + 2.0f, cy - 4.0f }, 1.3f, fgColor);
+        Rectangle binBody = { cx - 5.5f, cy - 1.0f, 11.0f, 10.0f };
+        DrawRectangleRoundedLines(binBody, 0.2f, 4, 1.5f, fgColor);
+        DrawLineEx((Vector2){ cx - 7.0f, cy - 3.0f }, (Vector2){ cx + 7.0f, cy - 3.0f }, 1.6f, fgColor);
+        DrawLineEx((Vector2){ cx - 2.5f, cy - 5.0f }, (Vector2){ cx + 2.5f, cy - 5.0f }, 1.5f, fgColor);
     } else {
         // First letter badge
         char letter[2] = { title[0], '\0' };
-        Vector2 lSize = MeasureTextEx(s_fontTitle, letter, 16.0f, 1.0f);
-        DrawTextEx(s_fontTitle, letter, (Vector2){ cx - lSize.x / 2.0f, cy - lSize.y / 2.0f }, 16.0f, 1.0f, fgColor);
+        Vector2 lSize = MeasureTextEx(s_fontTitle, letter, 19.0f, 1.0f);
+        DrawTextEx(s_fontTitle, letter, (Vector2){ cx - lSize.x / 2.0f, cy - lSize.y / 2.0f }, 19.0f, 1.0f, fgColor);
     }
 }
 
@@ -187,39 +187,39 @@ void Renderer_RenderFlare(const FlareWindow *win,
     ClearBackground((Color){ 24, 25, 29, 255 });
 
     // Subtle frosted border
-    DrawRectangleRoundedLines((Rectangle){ 1, 1, w - 2, h - 2 }, 0.045f, 16, 1.2f, (Color){ 255, 255, 255, 32 });
+    DrawRectangleRoundedLines((Rectangle){ 1, 1, w - 2, h - 2 }, 0.038f, 16, 1.2f, (Color){ 255, 255, 255, 32 });
 
     // Specular top highlight line
-    DrawLineEx((Vector2){ 20.0f, 1.5f }, (Vector2){ w - 20.0f, 1.5f }, 1.5f, (Color){ 255, 255, 255, 36 });
+    DrawLineEx((Vector2){ 24.0f, 1.5f }, (Vector2){ w - 24.0f, 1.5f }, 1.5f, (Color){ 255, 255, 255, 36 });
 
-    // 2. Search Input Header with sleek vector search icon
-    float headerH = 70.0f;
+    // 2. Search Input Header with sleek vector search icon (+20% scaled)
+    float headerH = 84.0f;
 
     // Search magnifying glass icon
-    float iconCX = 32.0f;
+    float iconCX = 38.0f;
     float iconCY = headerH / 2.0f;
     Color glassColor = (Color){ 145, 150, 165, 230 };
-    DrawCircleLines((int)iconCX, (int)iconCY - 1, 7.0f, glassColor);
-    DrawLineEx((Vector2){ iconCX + 4.8f, iconCY + 3.8f }, (Vector2){ iconCX + 10.5f, iconCY + 9.5f }, 2.2f, glassColor);
+    DrawCircleLines((int)iconCX, (int)iconCY - 1, 8.5f, glassColor);
+    DrawLineEx((Vector2){ iconCX + 5.8f, iconCY + 4.8f }, (Vector2){ iconCX + 12.5f, iconCY + 11.5f }, 2.5f, glassColor);
 
-    float textX = 56.0f;
-    float textY = (headerH - 24.0f) / 2.0f;
+    float textX = 66.0f;
+    float textY = (headerH - 28.0f) / 2.0f;
 
     if (kb->length == 0) {
         const char *placeholder = "Search apps, commands, or calculate math...";
-        DrawTextEx(s_fontInput, placeholder, (Vector2){ textX + 4.0f, textY }, 24.0f, 1.0f, (Color){ 125, 130, 142, 190 });
+        DrawTextEx(s_fontInput, placeholder, (Vector2){ textX + 4.0f, textY }, 28.0f, 1.0f, (Color){ 125, 130, 142, 190 });
     } else {
-        DrawTextEx(s_fontInput, kb->text, (Vector2){ textX, textY }, 24.0f, 1.0f, (Color){ 248, 250, 255, 255 });
+        DrawTextEx(s_fontInput, kb->text, (Vector2){ textX, textY }, 28.0f, 1.0f, (Color){ 248, 250, 255, 255 });
     }
 
     // Blinking Cursor
     float cursorX = textX;
     if (kb->length > 0) {
-        Vector2 textMetrics = MeasureTextEx(s_fontInput, kb->text, 24.0f, 1.0f);
+        Vector2 textMetrics = MeasureTextEx(s_fontInput, kb->text, 28.0f, 1.0f);
         cursorX = textX + textMetrics.x + 2.0f;
     }
-    float cursorW = 2.0f;
-    float cursorH = 26.0f;
+    float cursorW = 2.5f;
+    float cursorH = 30.0f;
     float cursorY = (headerH - cursorH) / 2.0f;
     Color cursorColor = (Color){ 220, 225, 235, (unsigned char)(cursorAlpha * 240.0f) };
     DrawRectangleRounded((Rectangle){ cursorX, cursorY, cursorW, cursorH }, 0.5f, 4, cursorColor);
@@ -228,25 +228,25 @@ void Renderer_RenderFlare(const FlareWindow *win,
     DrawLineEx((Vector2){ 0.0f, headerH }, (Vector2){ w, headerH }, 1.0f, (Color){ 255, 255, 255, 22 });
 
     // 3. Section Header ("SUGGESTIONS" or "APPLICATIONS & COMMANDS")
-    float sectionY = headerH + 14.0f;
+    float sectionY = headerH + 16.0f;
     const char *sectionTitle = search->is_showing_suggestions ? "SUGGESTIONS" : "APPLICATIONS & COMMANDS";
-    DrawTextEx(s_fontSection, sectionTitle, (Vector2){ 26.0f, sectionY }, 13.0f, 1.0f, (Color){ 140, 145, 158, 220 });
+    DrawTextEx(s_fontSection, sectionTitle, (Vector2){ 30.0f, sectionY }, 15.0f, 1.0f, (Color){ 140, 145, 158, 220 });
 
-    // 4. Search Results List
-    float listY = sectionY + 24.0f;
-    float rowH = 54.0f;
-    float rowW = w - 24.0f;
-    float rowX = 12.0f;
+    // 4. Search Results List (+20% scaled)
+    float listY = sectionY + 28.0f;
+    float rowH = 65.0f;
+    float rowW = w - 28.0f;
+    float rowX = 14.0f;
 
     Vector2 mousePos = GetMousePosition();
 
     if (search->result_count == 0 && !search->is_showing_suggestions) {
         char noRes[128];
         snprintf(noRes, sizeof(noRes), "No results found for \"%s\"", kb->text);
-        Vector2 nSize = MeasureTextEx(s_fontTitle, noRes, 18.0f, 1.0f);
+        Vector2 nSize = MeasureTextEx(s_fontTitle, noRes, 22.0f, 1.0f);
         DrawTextEx(s_fontTitle, noRes,
-                   (Vector2){ (w - nSize.x) / 2.0f, listY + 60.0f },
-                   18.0f, 1.0f, (Color){ 140, 145, 158, 200 });
+                   (Vector2){ (w - nSize.x) / 2.0f, listY + 70.0f },
+                   22.0f, 1.0f, (Color){ 140, 145, 158, 200 });
     } else {
         int visibleCount = search->result_count - search->scroll_offset;
         if (visibleCount > MAX_VISIBLE_ROWS) visibleCount = MAX_VISIBLE_ROWS;
@@ -256,7 +256,7 @@ void Renderer_RenderFlare(const FlareWindow *win,
             SearchResultItem *res = &search->results[idx];
 
             float ry = listY + (v * rowH);
-            Rectangle rowRec = { rowX, ry, rowW, rowH - 4.0f };
+            Rectangle rowRec = { rowX, ry, rowW, rowH - 5.0f };
 
             // Mouse hover selection
             if (CheckCollisionPointRec(mousePos, rowRec)) {
@@ -273,9 +273,9 @@ void Renderer_RenderFlare(const FlareWindow *win,
                 DrawRectangleRoundedLines(rowRec, 0.16f, 8, 1.0f, selBorder);
             }
 
-            // Left Icon
-            float iconSize = 34.0f;
-            float iconX = rowRec.x + 12.0f;
+            // Left Icon (+20% scaled: 40x40)
+            float iconSize = 40.0f;
+            float iconX = rowRec.x + 14.0f;
             float iconY = rowRec.y + (rowRec.height - iconSize) / 2.0f;
 
             if (res->is_command) {
@@ -291,33 +291,33 @@ void Renderer_RenderFlare(const FlareWindow *win,
                 }
             }
 
-            // Title (Segoe UI Semibold 18px)
-            float titleX = iconX + iconSize + 14.0f;
-            float titleY = rowRec.y + (rowRec.height - 18.0f) / 2.0f;
+            // Title (Segoe UI Semibold 22px)
+            float titleX = iconX + iconSize + 16.0f;
+            float titleY = rowRec.y + (rowRec.height - 22.0f) / 2.0f;
             Color titleColor = isSelected ? (Color){ 255, 255, 255, 255 } : (Color){ 240, 244, 250, 250 };
-            DrawTextEx(s_fontTitle, res->title, (Vector2){ titleX, titleY }, 18.0f, 1.0f, titleColor);
+            DrawTextEx(s_fontTitle, res->title, (Vector2){ titleX, titleY }, 22.0f, 1.0f, titleColor);
 
-            // Subtitle (crisp, secondary tone 14px)
-            Vector2 titleMetrics = MeasureTextEx(s_fontTitle, res->title, 18.0f, 1.0f);
-            float subX = titleX + titleMetrics.x + 12.0f;
-            float subY = titleY + 2.0f;
+            // Subtitle (crisp, secondary tone 17px)
+            Vector2 titleMetrics = MeasureTextEx(s_fontTitle, res->title, 22.0f, 1.0f);
+            float subX = titleX + titleMetrics.x + 14.0f;
+            float subY = titleY + 3.0f;
             Color subColor = isSelected ? (Color){ 175, 182, 195, 220 } : (Color){ 135, 140, 150, 190 };
-            DrawTextEx(s_fontSubtitle, res->subtitle, (Vector2){ subX, subY }, 14.0f, 1.0f, subColor);
+            DrawTextEx(s_fontSubtitle, res->subtitle, (Vector2){ subX, subY }, 17.0f, 1.0f, subColor);
 
-            // Right Category Label ("Application", "Command", "Math")
-            Vector2 catMetrics = MeasureTextEx(s_fontSubtitle, res->category_label, 13.0f, 1.0f);
-            float catX = rowRec.x + rowRec.width - catMetrics.x - 16.0f;
-            float catY = titleY + 2.0f;
+            // Right Category Label ("Application", "Command", "Math" 16px)
+            Vector2 catMetrics = MeasureTextEx(s_fontSubtitle, res->category_label, 16.0f, 1.0f);
+            float catX = rowRec.x + rowRec.width - catMetrics.x - 18.0f;
+            float catY = titleY + 3.0f;
             Color catColor = isSelected ? (Color){ 180, 185, 200, 220 } : (Color){ 130, 135, 148, 180 };
-            DrawTextEx(s_fontSubtitle, res->category_label, (Vector2){ catX, catY }, 13.0f, 1.0f, catColor);
+            DrawTextEx(s_fontSubtitle, res->category_label, (Vector2){ catX, catY }, 16.0f, 1.0f, catColor);
         }
     }
 
-    // 5. Clean Footer Navigation Hints
-    float footerY = h - 26.0f;
+    // 5. Clean Footer Navigation Hints (Standard ASCII, zero '?' marks)
+    float footerY = h - 30.0f;
     const char *hints = "Press Enter to open   |   Up / Down to navigate   |   Esc to close";
-    Vector2 hMetrics = MeasureTextEx(s_fontFooter, hints, 13.0f, 1.0f);
+    Vector2 hMetrics = MeasureTextEx(s_fontFooter, hints, 15.0f, 1.0f);
     DrawTextEx(s_fontFooter, hints,
                (Vector2){ (w - hMetrics.x) / 2.0f, footerY },
-               13.0f, 1.0f, (Color){ 120, 126, 138, 190 });
+               15.0f, 1.0f, (Color){ 120, 126, 138, 190 });
 }

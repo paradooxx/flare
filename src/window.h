@@ -3,10 +3,10 @@
 
 #include <stdbool.h>
 
-// Flare Window Dimensions - Modern launcher proportions (Spotlight/Raycast scale)
-#define WINDOW_WIDTH     800
-#define WINDOW_HEIGHT    540
-#define WINDOW_RADIUS    16.0f
+// Flare Window Dimensions - Modern launcher proportions (+20% scale)
+#define WINDOW_WIDTH     960
+#define WINDOW_HEIGHT    650
+#define WINDOW_RADIUS    18.0f
 
 typedef struct {
     void *hwnd;
