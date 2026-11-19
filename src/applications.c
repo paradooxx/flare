@@ -1,4 +1,5 @@
 #include "applications.h"
+#include "calc.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -190,7 +191,10 @@ bool Applications_Execute(const char *path, bool is_command, const char *name) {
     (void)name;
 
     if (is_command) {
-        if (strcmp(path, "cmd_quit_all_apps") == 0) {
+        if (strncmp(path, "calc_copy:", 10) == 0) {
+            Calc_CopyToClipboard(path + 10);
+            return true;
+        } else if (strcmp(path, "cmd_quit_all_apps") == 0) {
             EnumWindows(CloseTopLevelWindow, 0);
             return true;
         } else if (strcmp(path, "cmd_lock_pc") == 0) {

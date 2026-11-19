@@ -32,6 +32,7 @@ Built with **C**, **raylib**, and the **Win32 API**.
   - Mouse hover & click to immediately launch.
 - **Fast Search Engine**:
   - Automatically indexes Start Menu applications and common Windows tools.
+  - **Inline Math Calculator**: Evaluates arithmetic expressions in real-time (`2+2`, `15*6`, `100/4`, `(12+8)*3`, `2^10`, `sqrt(144)`, percentages, `pi`, `e`, etc.). Pressing `Enter` automatically copies the answer to your Windows clipboard!
   - Prioritized scoring: exact matches, prefix matches, acronym matches (e.g. `gc` for Google Chrome), word-boundary matches, and categories.
   - Low CPU usage with dynamic FPS throttling when hidden.
 

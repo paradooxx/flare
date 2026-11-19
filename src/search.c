@@ -1,4 +1,5 @@
 #include "search.h"
+#include "calc.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -168,6 +169,19 @@ void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const ch
     engine->selected_index = 0;
     engine->scroll_offset = 0;
     engine->is_showing_suggestions = false;
+
+    // 1. Evaluate mathematical expressions (e.g. 2+2, 15*6, sqrt(144), 50*20%)
+    double mathVal = 0.0;
+    char mathStr[64] = { 0 };
+    if (Calc_Evaluate(query, &mathVal, mathStr, sizeof(mathStr))) {
+        SearchResultItem *mathItem = &engine->results[engine->result_count++];
+        snprintf(mathItem->title, sizeof(mathItem->title), "= %s", mathStr);
+        snprintf(mathItem->subtitle, sizeof(mathItem->subtitle), "%s", query);
+        snprintf(mathItem->category_label, sizeof(mathItem->category_label), "Calculation");
+        snprintf(mathItem->path, sizeof(mathItem->path), "calc_copy:%s", mathStr);
+        mathItem->is_command = true;
+        mathItem->match_score = 999;
+    }
 
     if (!apps || apps->count == 0) return;
 

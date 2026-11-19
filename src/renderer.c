@@ -111,6 +111,20 @@ static Texture2D GetOrLoadAppIcon(const char *path) {
 // Draw vector icon for system commands
 static void DrawCommandIcon(float x, float y, float size, const char *title) {
     Rectangle bgRec = { x, y, size, size };
+
+    // Dedicated calculator icon for math evaluations
+    if (title && (title[0] == '=' || strstr(title, "Calc") != NULL)) {
+        Color calcBg = (Color){ 240, 130, 25, 240 }; // Spotlight orange calculator accent
+        DrawRectangleRounded(bgRec, 0.28f, 8, calcBg);
+        float cx = x + size / 2.0f;
+        float cy = y + size / 2.0f;
+        float lineW = 9.0f;
+        float lineH = 1.8f;
+        DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy - 2.5f, lineW, lineH }, 0.5f, 4, WHITE);
+        DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy + 2.0f, lineW, lineH }, 0.5f, 4, WHITE);
+        return;
+    }
+
     Color iconBg = (Color){ 42, 44, 52, 230 };
     Color iconBorder = (Color){ 255, 255, 255, 26 };
     DrawRectangleRounded(bgRec, 0.28f, 8, iconBg);

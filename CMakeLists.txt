@@ -27,6 +27,8 @@ set(SOURCES
     src/search.h
     src/applications.c
     src/applications.h
+    src/calc.c
+    src/calc.h
 )
 
 add_executable(Flare ${SOURCES})
