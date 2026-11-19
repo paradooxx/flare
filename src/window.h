@@ -3,10 +3,10 @@
 
 #include <stdbool.h>
 
-// Flare Window Dimensions
-#define WINDOW_WIDTH     680
-#define WINDOW_HEIGHT    440
-#define WINDOW_RADIUS    14.0f
+// Flare Window Dimensions - Modern launcher proportions (Spotlight/Raycast scale)
+#define WINDOW_WIDTH     800
+#define WINDOW_HEIGHT    540
+#define WINDOW_RADIUS    16.0f
 
 typedef struct {
     void *hwnd;
@@ -15,7 +15,8 @@ typedef struct {
     bool is_visible;
 } FlareWindow;
 
-// Window lifecycle
+// Window lifecycle & DPI
+void Window_SetDpiAwareness(void);
 FlareWindow* Window_Create(int width, int height, const char *title);
 void Window_Destroy(FlareWindow *win);
 

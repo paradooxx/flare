@@ -8,6 +8,9 @@
 #include <stdio.h>
 
 int main(void) {
+    // 0. Enable Windows Per-Monitor High-DPI awareness (prevents OS bitmap scaling & blurring)
+    Window_SetDpiAwareness();
+
     // 1. Configure raylib window flags
     // Undecorated borderless floating launcher, topmost, always running
     SetConfigFlags(FLAG_WINDOW_UNDECORATED | 

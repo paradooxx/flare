@@ -21,6 +21,51 @@
 
 typedef HRESULT (WINAPI *pfnDwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
 
+typedef enum {
+    FLARE_PROCESS_DPI_UNAWARE = 0,
+    FLARE_PROCESS_SYSTEM_DPI_AWARE = 1,
+    FLARE_PROCESS_PER_MONITOR_DPI_AWARE = 2
+} FLARE_PROCESS_DPI_AWARENESS;
+
+typedef BOOL (WINAPI *pfnSetProcessDpiAwarenessContext)(HANDLE);
+typedef HRESULT (WINAPI *pfnSetProcessDpiAwareness)(FLARE_PROCESS_DPI_AWARENESS);
+typedef BOOL (WINAPI *pfnSetProcessDPIAware)(void);
+
+void Window_SetDpiAwareness(void) {
+    // 1. Try Windows 10 Creators Update+ Per-Monitor V2 (DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 == -4)
+    HMODULE hUser = LoadLibraryA("user32.dll");
+    if (hUser) {
+        pfnSetProcessDpiAwarenessContext setCtx = 
+            (pfnSetProcessDpiAwarenessContext)(void*)GetProcAddress(hUser, "SetProcessDpiAwarenessContext");
+        if (setCtx) {
+            if (setCtx((HANDLE)-4)) {
+                return;
+            }
+        }
+    }
+
+    // 2. Try Windows 8.1+ Per-Monitor V1 via shcore.dll
+    HMODULE hShcore = LoadLibraryA("shcore.dll");
+    if (hShcore) {
+        pfnSetProcessDpiAwareness setAwareness = 
+            (pfnSetProcessDpiAwareness)(void*)GetProcAddress(hShcore, "SetProcessDpiAwareness");
+        if (setAwareness) {
+            if (SUCCEEDED(setAwareness(FLARE_PROCESS_PER_MONITOR_DPI_AWARE))) {
+                return;
+            }
+        }
+    }
+
+    // 3. Fallback to Windows Vista/7 SetProcessDPIAware
+    if (hUser) {
+        pfnSetProcessDPIAware setLegacy = 
+            (pfnSetProcessDPIAware)(void*)GetProcAddress(hUser, "SetProcessDPIAware");
+        if (setLegacy) {
+            setLegacy();
+        }
+    }
+}
+
 static WNDPROC s_origWndProc = NULL;
 static bool s_hotkeyTriggered = false;
 static bool s_focusLost = false;

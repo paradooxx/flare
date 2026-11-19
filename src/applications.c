@@ -279,12 +279,25 @@ unsigned char* Applications_ExtractIconRGBA(const char *path, int *out_w, int *o
 
     HICON hIcon = NULL;
 
-    // First try extracting directly from target .exe for clean native icon without shortcut overlay
-    if (iconPath != path) {
+    // 1. Try high-resolution 64x64 extraction via PrivateExtractIconsA
+    HMODULE hUser = LoadLibraryA("user32.dll");
+    typedef UINT (WINAPI *pfnPrivateExtractIconsA)(LPCSTR, int, int, int, HICON*, UINT*, UINT, UINT);
+    pfnPrivateExtractIconsA pPEI = hUser ? (pfnPrivateExtractIconsA)(void*)GetProcAddress(hUser, "PrivateExtractIconsA") : NULL;
+    if (pPEI) {
+        UINT iconId = 0;
+        if (pPEI(iconPath, 0, 64, 64, &hIcon, &iconId, 1, LR_LOADFROMFILE) > 0 && hIcon) {
+            // Successfully extracted 64x64 icon
+        } else if (iconPath != path && pPEI(path, 0, 64, 64, &hIcon, &iconId, 1, LR_LOADFROMFILE) > 0 && hIcon) {
+            // Successfully extracted from original path
+        }
+    }
+
+    // 2. Fallback to ExtractIconExA
+    if (!hIcon && iconPath != path) {
         ExtractIconExA(iconPath, 0, &hIcon, NULL, 1);
     }
 
-    // Fallback to ShellFileInfo
+    // 3. Fallback to ShellFileInfo
     if (!hIcon) {
         SHFILEINFOA sfi;
         ZeroMemory(&sfi, sizeof(sfi));
