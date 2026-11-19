@@ -9,6 +9,9 @@
 void Renderer_Init(void);
 void Renderer_Cleanup(void);
 
+// Calculate dynamic panel height based on result/suggestion count
+int Renderer_CalculateHeight(const SearchEngine *search);
+
 // Main rendering routine for Flare search launcher
 void Renderer_RenderFlare(const FlareWindow *win,
                           const AnimationController *anim,

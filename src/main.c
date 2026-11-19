@@ -53,6 +53,13 @@ int main(void) {
     Search_Init(&search);
     Search_PopulateSuggestions(&search, &apps);
 
+    // Initial dynamic panel height based on suggestions
+    int initialHeight = Renderer_CalculateHeight(&search);
+    if (initialHeight != win->height) {
+        win->height = initialHeight;
+        SetWindowSize(win->width, initialHeight);
+    }
+
     // 4. Main application loop
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
@@ -64,6 +71,11 @@ int main(void) {
             } else {
                 Keyboard_Clear(&kb);
                 Search_PopulateSuggestions(&search, &apps);
+                int targetH = Renderer_CalculateHeight(&search);
+                if (win->height != targetH) {
+                    win->height = targetH;
+                    SetWindowSize(win->width, targetH);
+                }
                 Window_CenterOnActiveMonitor(win);
                 Window_Show(win);
                 Window_CheckFocusLost();
@@ -106,15 +118,16 @@ int main(void) {
                 // Mouse click on result rows
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     Vector2 mousePos = GetMousePosition();
-                    float listY = 56.0f + 12.0f + 22.0f;
-                    float rowH = 46.0f;
+                    float listY = 84.0f + 16.0f + 28.0f;
+                    float rowH = 65.0f;
+                    float rowW = (float)win->width - 28.0f;
                     int visibleCount = search.result_count - search.scroll_offset;
                     if (visibleCount > MAX_VISIBLE_ROWS) visibleCount = MAX_VISIBLE_ROWS;
 
                     for (int v = 0; v < visibleCount; v++) {
                         int idx = search.scroll_offset + v;
                         float ry = listY + (v * rowH);
-                        Rectangle rowRec = { 8.0f, ry, (float)win->width - 16.0f, rowH - 2.0f };
+                        Rectangle rowRec = { 14.0f, ry, rowW, rowH - 5.0f };
                         if (CheckCollisionPointRec(mousePos, rowRec)) {
                             search.selected_index = idx;
                             SearchResultItem *res = &search.results[idx];
@@ -129,6 +142,13 @@ int main(void) {
             // Update search state in real-time when query changed
             if (kb.text_changed) {
                 Search_Execute(&search, &apps, kb.text);
+            }
+
+            // Dynamically adjust window height based on active search/suggestion count
+            int targetHeight = Renderer_CalculateHeight(&search);
+            if (targetHeight != win->height) {
+                win->height = targetHeight;
+                SetWindowSize(win->width, targetHeight);
             }
         }
 

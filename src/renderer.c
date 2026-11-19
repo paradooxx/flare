@@ -172,6 +172,30 @@ static void DrawCommandIcon(float x, float y, float size, const char *title) {
     }
 }
 
+int Renderer_CalculateHeight(const SearchEngine *search) {
+    if (!search) return WINDOW_HEIGHT;
+
+    int visibleCount = search->result_count;
+    if (visibleCount > MAX_VISIBLE_ROWS) {
+        visibleCount = MAX_VISIBLE_ROWS;
+    }
+
+    if (visibleCount > 0) {
+        // Header (84) + section margins (16 + 28) = 128
+        // visibleCount * rowH (65)
+        // Bottom padding to footer hints = 67
+        return 128 + (visibleCount * 65) + 67;
+    }
+
+    // 0 results state ("No results found for ...")
+    if (!search->is_showing_suggestions) {
+        return 280;
+    }
+
+    // Clean compact empty search bar
+    return 110;
+}
+
 void Renderer_RenderFlare(const FlareWindow *win,
                           const AnimationController *anim,
                           const KeyboardState *kb,
