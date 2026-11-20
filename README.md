@@ -1,4 +1,4 @@
-# <img src="resources/flare.png" width="36" height="36" align="center" alt="Flare Logo"/> Flare – Desktop Search Launcher for Windows
+# <img src="resources/flare.png" width="36" height="36" alt="Flare Logo"/> Flare – Desktop Search Launcher for Windows
 
 A fast, lightweight, native-feeling desktop search launcher for Windows inspired by macOS Spotlight and Raycast.
 
