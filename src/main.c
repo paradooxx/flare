@@ -21,6 +21,7 @@ int main(void) {
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flare");
     SetTargetFPS(60);
+    SetExitKey(KEY_NULL); // Prevent Escape key from closing window/terminating process
 
     // 2. Initialize native Win32 window integration
     void *hwnd = GetWindowHandle();
@@ -108,8 +109,9 @@ int main(void) {
                 Search_SelectPrev(&search);
             }
 
-            // Enter opens the selected result
-            if (kb.enter_pressed && search.result_count > 0) {
+            // Enter opens the selected result (ensure Alt is not held so Alt+Enter hotkey toggles Flare)
+            bool altDown = IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT);
+            if (kb.enter_pressed && !altDown && search.result_count > 0) {
                 if (search.selected_index >= 0 && search.selected_index < search.result_count) {
                     SearchResultItem *res = &search.results[search.selected_index];
                     if (strcmp(res->category_label, "Web Search") != 0 &&

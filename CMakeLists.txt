@@ -34,12 +34,14 @@ set(SOURCES
     src/calc.h
     src/history.c
     src/history.h
+    resources/flare.rc
 )
 
 add_executable(Flare ${SOURCES})
 
 target_include_directories(Flare PRIVATE
     src
+    resources
     vendor/raylib/src
 )
 

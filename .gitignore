@@ -54,3 +54,17 @@ desktop.ini
 # Logs & crash dumps
 *.log
 *.dmp
+
+# Installer & packaging
+installer/
+resources/
+Output/
+_ISPack/
+*.iss
+*.iss.bak
+*.msi
+*Setup*.exe
+*Installer*.exe
+_CPack_Packages/
+CPackConfig.cmake
+CPackSourceConfig.cmake

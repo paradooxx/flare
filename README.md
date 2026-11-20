@@ -1,8 +1,12 @@
-# Flare – macOS-Style Search Launcher for Windows
+# <img src="resources/flare.png" width="36" height="36" align="center" alt="Flare Logo"/> Flare – Desktop Search Launcher for Windows
 
 A fast, lightweight, native-feeling desktop search launcher for Windows inspired by macOS Spotlight and Raycast.
 
 Built with **C**, **raylib**, and the **Win32 API**.
+
+<p align="center">
+  <img src="docs/screenshot.png" alt="Flare App Window" width="850">
+</p>
 
 ---
 
@@ -25,8 +29,8 @@ Built with **C**, **raylib**, and the **Win32 API**.
   - Multi-monitor support: dynamically centers on the monitor under the cursor.
   - Focus loss & click-outside detection.
 - **Keyboard Shortcuts**:
-  - `Alt + Space`: Global hotkey to open / toggle Flare from anywhere in Windows.
-  - `Escape`: Closes Flare.
+  - `Alt + Enter` or `Alt + Space`: Global hotkey to open / toggle Flare from anywhere in Windows.
+  - `Escape`: Hides Flare to the background (remains running quietly for instant reopening).
   - `Up / Down`: Navigates search results with smooth window scrolling.
   - `Enter`: Launches the selected application or executes system command.
   - Mouse hover & click to immediately launch.
@@ -41,7 +45,7 @@ Built with **C**, **raylib**, and the **Win32 API**.
 ## Project Structure
 
 ```
-WinSearch/
+flare/
 ├── CMakeLists.txt              # CMake build configuration
 ├── vendor/
 │   └── raylib/                 # Raylib 5.0 git submodule
