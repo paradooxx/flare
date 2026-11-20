@@ -17,6 +17,57 @@ void Search_Cleanup(SearchEngine *engine) {
     memset(engine, 0, sizeof(SearchEngine));
 }
 
+static bool HasNonWhitespace(const char *str) {
+    if (!str) return false;
+    while (*str) {
+        if (!isspace((unsigned char)*str)) return true;
+        str++;
+    }
+    return false;
+}
+
+static void UrlEncode(const char *src, char *dst, size_t maxLen) {
+    if (!src || !dst || maxLen == 0) return;
+    size_t d = 0;
+    while (*src && d + 4 < maxLen) {
+        unsigned char c = (unsigned char)*src;
+        if (c == ' ') {
+            dst[d++] = '+';
+        } else if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            dst[d++] = (char)c;
+        } else {
+            snprintf(dst + d, maxLen - d, "%%%02X", c);
+            d += 3;
+        }
+        src++;
+    }
+    dst[d] = '\0';
+}
+
+static bool IsLikelyUrl(const char *str) {
+    if (!str) return false;
+    if (strncmp(str, "http://", 7) == 0 || strncmp(str, "https://", 8) == 0) return true;
+    if (strncmp(str, "www.", 4) == 0) return true;
+    if (strchr(str, ' ') != NULL) return false;
+
+    // Check for common TLD endings
+    const char *dot = strrchr(str, '.');
+    if (dot && *(dot + 1) != '\0') {
+        const char *tld = dot + 1;
+        static const char *knownTlds[] = {
+            "com", "org", "net", "edu", "gov", "io", "dev", "app",
+            "co", "me", "info", "biz", "tv", "cc", "xyz", "online",
+            "site", "tech", "store", "us", "uk", "ca", "de", "fr", "jp", "au"
+        };
+        for (size_t i = 0; i < sizeof(knownTlds) / sizeof(knownTlds[0]); i++) {
+            if (_stricmp(tld, knownTlds[i]) == 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 static void ToLowerStr(const char *src, char *dst, int maxLen) {
     int i = 0;
     while (src[i] && i < maxLen - 1) {
@@ -156,7 +207,7 @@ static int CalculateMatchScore(const char *name, const char *sub, const char *qL
 void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const HistoryManager *hist, const char *query) {
     if (!engine) return;
 
-    if (!query || strlen(query) == 0) {
+    if (!query || strlen(query) == 0 || !HasNonWhitespace(query)) {
         engine->query[0] = '\0';
         Search_PopulateSuggestions(engine, apps, hist);
         return;
@@ -182,46 +233,69 @@ void Search_Execute(SearchEngine *engine, const ApplicationCache *apps, const Hi
         mathItem->match_score = 999;
     }
 
-    if (!apps || apps->count == 0) return;
+    if (apps && apps->count > 0) {
+        char qLower[64];
+        ToLowerStr(query, qLower, sizeof(qLower));
 
-    char qLower[64];
-    ToLowerStr(query, qLower, sizeof(qLower));
+        // Temporary storage for sorting
+        typedef struct {
+            int appIndex;
+            int score;
+        } ScoredMatch;
 
-    // Temporary storage for sorting
-    typedef struct {
-        int appIndex;
-        int score;
-    } ScoredMatch;
+        ScoredMatch matches[MAX_SEARCH_RESULTS * 4];
+        int matchCount = 0;
 
-    ScoredMatch matches[MAX_SEARCH_RESULTS * 4];
-    int matchCount = 0;
-
-    for (int i = 0; i < apps->count; i++) {
-        int score = CalculateMatchScore(apps->items[i].name, apps->items[i].subtitle, qLower);
-        if (score > 0) {
-            if (matchCount < (int)(sizeof(matches) / sizeof(matches[0]))) {
-                matches[matchCount].appIndex = i;
-                matches[matchCount].score = score;
-                matchCount++;
+        for (int i = 0; i < apps->count; i++) {
+            int score = CalculateMatchScore(apps->items[i].name, apps->items[i].subtitle, qLower);
+            if (score > 0) {
+                if (matchCount < (int)(sizeof(matches) / sizeof(matches[0]))) {
+                    matches[matchCount].appIndex = i;
+                    matches[matchCount].score = score;
+                    matchCount++;
+                }
             }
         }
-    }
 
-    // Sort by score descending (simple insertion sort for small arrays)
-    for (int i = 1; i < matchCount; i++) {
-        ScoredMatch key = matches[i];
-        int j = i - 1;
-        while (j >= 0 && matches[j].score < key.score) {
-            matches[j + 1] = matches[j];
-            j--;
+        // Sort by score descending (simple insertion sort for small arrays)
+        for (int i = 1; i < matchCount; i++) {
+            ScoredMatch key = matches[i];
+            int j = i - 1;
+            while (j >= 0 && matches[j].score < key.score) {
+                matches[j + 1] = matches[j];
+                j--;
+            }
+            matches[j + 1] = key;
         }
-        matches[j + 1] = key;
+
+        // Populate top results
+        int limit = matchCount < MAX_SEARCH_RESULTS ? matchCount : MAX_SEARCH_RESULTS;
+        for (int i = 0; i < limit; i++) {
+            AddResult(engine, &apps->items[matches[i].appIndex], matches[i].score);
+        }
     }
 
-    // Populate top results
-    int limit = matchCount < MAX_SEARCH_RESULTS ? matchCount : MAX_SEARCH_RESULTS;
-    for (int i = 0; i < limit; i++) {
-        AddResult(engine, &apps->items[matches[i].appIndex], matches[i].score);
+    // 3. Fallback: If no application or calculation matched, provide Web Search fallback option
+    if (engine->result_count == 0) {
+        SearchResultItem *webItem = &engine->results[engine->result_count++];
+        if (IsLikelyUrl(query)) {
+            if (strncmp(query, "http://", 7) == 0 || strncmp(query, "https://", 8) == 0) {
+                snprintf(webItem->path, sizeof(webItem->path), "%s", query);
+            } else {
+                snprintf(webItem->path, sizeof(webItem->path), "https://%s", query);
+            }
+            snprintf(webItem->title, sizeof(webItem->title), "Open \"%s\"", query);
+            snprintf(webItem->subtitle, sizeof(webItem->subtitle), "Navigate to website in default browser");
+        } else {
+            char encoded[512] = { 0 };
+            UrlEncode(query, encoded, sizeof(encoded));
+            snprintf(webItem->path, sizeof(webItem->path), "https://www.google.com/search?q=%s", encoded);
+            snprintf(webItem->title, sizeof(webItem->title), "Search the Web for \"%s\"", query);
+            snprintf(webItem->subtitle, sizeof(webItem->subtitle), "Open in default browser");
+        }
+        snprintf(webItem->category_label, sizeof(webItem->category_label), "Web Search");
+        webItem->is_command = true;
+        webItem->match_score = 1;
     }
 }
 

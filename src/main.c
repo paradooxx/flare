@@ -7,6 +7,7 @@
 #include "applications.h"
 #include "history.h"
 #include <stdio.h>
+#include <string.h>
 
 int main(void) {
     // 0. Enable Windows Per-Monitor High-DPI awareness (prevents OS bitmap scaling & blurring)
@@ -111,7 +112,10 @@ int main(void) {
             if (kb.enter_pressed && search.result_count > 0) {
                 if (search.selected_index >= 0 && search.selected_index < search.result_count) {
                     SearchResultItem *res = &search.results[search.selected_index];
-                    History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
+                    if (strcmp(res->category_label, "Web Search") != 0 &&
+                        strcmp(res->category_label, "Calculation") != 0) {
+                        History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
+                    }
                     Applications_Execute(res->path, res->is_command, res->title);
                     Anim_StartClose(&anim);
                 }
@@ -139,7 +143,10 @@ int main(void) {
                         if (CheckCollisionPointRec(mousePos, rowRec)) {
                             search.selected_index = idx;
                             SearchResultItem *res = &search.results[idx];
-                            History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
+                            if (strcmp(res->category_label, "Web Search") != 0 &&
+                                strcmp(res->category_label, "Calculation") != 0) {
+                                History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
+                            }
                             Applications_Execute(res->path, res->is_command, res->title);
                             Anim_StartClose(&anim);
                             break;

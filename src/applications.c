@@ -194,6 +194,9 @@ bool Applications_Execute(const char *path, bool is_command, const char *name) {
         if (strncmp(path, "calc_copy:", 10) == 0) {
             Calc_CopyToClipboard(path + 10);
             return true;
+        } else if (strncmp(path, "http://", 7) == 0 || strncmp(path, "https://", 8) == 0) {
+            HINSTANCE res = ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWNORMAL);
+            return ((INT_PTR)res > 32);
         } else if (strcmp(path, "cmd_quit_all_apps") == 0) {
             EnumWindows(CloseTopLevelWindow, 0);
             return true;

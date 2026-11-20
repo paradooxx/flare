@@ -114,7 +114,7 @@ static Texture2D GetOrLoadAppIcon(const char *path) {
 }
 
 // Draw vector icon for system commands (+20% scaled)
-static void DrawCommandIcon(float x, float y, float size, const char *title) {
+static void DrawCommandIcon(float x, float y, float size, const char *title, const char *category) {
     Rectangle bgRec = { x, y, size, size };
 
     // Dedicated calculator icon for math evaluations
@@ -127,6 +127,25 @@ static void DrawCommandIcon(float x, float y, float size, const char *title) {
         float lineH = 2.8f;
         DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy - 4.2f, lineW, lineH }, 0.5f, 4, WHITE);
         DrawRectangleRounded((Rectangle){ cx - lineW/2.0f, cy + 3.5f, lineW, lineH }, 0.5f, 4, WHITE);
+        return;
+    }
+
+    // Dedicated Web Search icon (vibrant blue globe)
+    if ((category && strcmp(category, "Web Search") == 0) ||
+        (title && (strstr(title, "Search the Web") != NULL || strstr(title, "Open \"") != NULL))) {
+        Color webBg = (Color){ 36, 120, 230, 245 }; // Vibrant blue accent
+        DrawRectangleRounded(bgRec, 0.28f, 8, webBg);
+        float cx = x + size / 2.0f;
+        float cy = y + size / 2.0f;
+        Color fg = (Color){ 255, 255, 255, 240 };
+        // Outer sphere circle
+        DrawCircleLines((int)cx, (int)cy, 10.5f, fg);
+        // Equator
+        DrawLineEx((Vector2){ cx - 10.5f, cy }, (Vector2){ cx + 10.5f, cy }, 1.3f, fg);
+        // Longitude meridian ellipse
+        DrawEllipseLines((int)cx, (int)cy, 5.0f, 10.5f, fg);
+        // Prime meridian line
+        DrawLineEx((Vector2){ cx, cy - 10.5f }, (Vector2){ cx, cy + 10.5f }, 1.2f, fg);
         return;
     }
 
@@ -252,9 +271,14 @@ void Renderer_RenderFlare(const FlareWindow *win,
     // Divider Line
     DrawLineEx((Vector2){ 0.0f, headerH }, (Vector2){ w, headerH }, 1.0f, (Color){ 255, 255, 255, 22 });
 
-    // 3. Section Header ("SUGGESTIONS" or "APPLICATIONS & COMMANDS")
+    // 3. Section Header ("SUGGESTIONS", "WEB SEARCH", or "APPLICATIONS & COMMANDS")
     float sectionY = headerH + 16.0f;
-    const char *sectionTitle = search->is_showing_suggestions ? "SUGGESTIONS" : "APPLICATIONS & COMMANDS";
+    const char *sectionTitle = "APPLICATIONS & COMMANDS";
+    if (search->is_showing_suggestions) {
+        sectionTitle = "SUGGESTIONS";
+    } else if (search->result_count == 1 && strcmp(search->results[0].category_label, "Web Search") == 0) {
+        sectionTitle = "WEB SEARCH";
+    }
     DrawTextEx(s_fontTitle, sectionTitle, (Vector2){ 30.0f, sectionY }, 15.0f, 1.0f, (Color){ 140, 145, 158, 220 });
 
     // 4. Search Results List (+20% scaled)
@@ -304,7 +328,7 @@ void Renderer_RenderFlare(const FlareWindow *win,
             float iconY = rowRec.y + (rowRec.height - iconSize) / 2.0f;
 
             if (res->is_command) {
-                DrawCommandIcon(iconX, iconY, iconSize, res->title);
+                DrawCommandIcon(iconX, iconY, iconSize, res->title, res->category_label);
             } else {
                 Texture2D iconTex = GetOrLoadAppIcon(res->path);
                 if (iconTex.id > 0) {
@@ -312,7 +336,7 @@ void Renderer_RenderFlare(const FlareWindow *win,
                     Rectangle dstRec = { iconX, iconY, iconSize, iconSize };
                     DrawTexturePro(iconTex, srcRec, dstRec, (Vector2){ 0, 0 }, 0.0f, WHITE);
                 } else {
-                    DrawCommandIcon(iconX, iconY, iconSize, res->title);
+                    DrawCommandIcon(iconX, iconY, iconSize, res->title, res->category_label);
                 }
             }
 
