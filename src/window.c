@@ -17,8 +17,7 @@
 #define DWMWCP_ROUND 2
 #endif
 
-#define FLARE_HOTKEY_SPACE_ID 1
-#define FLARE_HOTKEY_ENTER_ID 2
+#define FLARE_HOTKEY_ID 1
 
 typedef HRESULT (WINAPI *pfnDwmSetWindowAttribute)(HWND, DWORD, LPCVOID, DWORD);
 
@@ -74,9 +73,16 @@ static bool s_focusLost = false;
 static LRESULT CALLBACK FlareSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
         case WM_HOTKEY:
-            if (wParam == FLARE_HOTKEY_SPACE_ID || wParam == FLARE_HOTKEY_ENTER_ID) {
+            if (wParam == FLARE_HOTKEY_ID) {
                 s_hotkeyTriggered = true;
                 return 0;
+            }
+            break;
+
+        case WM_SETCURSOR:
+            if (LOWORD(lParam) == HTCLIENT) {
+                SetCursor(NULL);
+                return TRUE;
             }
             break;
 
@@ -113,8 +119,7 @@ void Window_Destroy(FlareWindow *win) {
     if (!win) return;
     if (win->hwnd) {
         HWND hwnd = (HWND)win->hwnd;
-        UnregisterHotKey(hwnd, FLARE_HOTKEY_SPACE_ID);
-        UnregisterHotKey(hwnd, FLARE_HOTKEY_ENTER_ID);
+        UnregisterHotKey(hwnd, FLARE_HOTKEY_ID);
         if (s_origWndProc) {
             SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)s_origWndProc);
             s_origWndProc = NULL;
@@ -156,12 +161,9 @@ void Window_ApplyWin32Styles(FlareWindow *win) {
     // 3. Subclass window procedure
     s_origWndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (LONG_PTR)FlareSubclassProc);
 
-    // 4. Register Global Hotkeys: Alt + Space and Alt + Enter
-    if (!RegisterHotKey(hwnd, FLARE_HOTKEY_SPACE_ID, MOD_ALT | 0x4000, VK_SPACE)) {
-        RegisterHotKey(hwnd, FLARE_HOTKEY_SPACE_ID, MOD_ALT, VK_SPACE);
-    }
-    if (!RegisterHotKey(hwnd, FLARE_HOTKEY_ENTER_ID, MOD_ALT | 0x4000, VK_RETURN)) {
-        RegisterHotKey(hwnd, FLARE_HOTKEY_ENTER_ID, MOD_ALT, VK_RETURN);
+    // 4. Register Global Hotkey: Alt + Space
+    if (!RegisterHotKey(hwnd, FLARE_HOTKEY_ID, MOD_ALT | 0x4000, VK_SPACE)) {
+        RegisterHotKey(hwnd, FLARE_HOTKEY_ID, MOD_ALT, VK_SPACE);
     }
 
     SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,

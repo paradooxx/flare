@@ -287,8 +287,6 @@ void Renderer_RenderFlare(const FlareWindow *win,
     float rowW = w - 28.0f;
     float rowX = 14.0f;
 
-    Vector2 mousePos = GetMousePosition();
-
     if (search->result_count == 0 && !search->is_showing_suggestions) {
         char noRes[128];
         snprintf(noRes, sizeof(noRes), "No results found for \"%s\"", kb->text);
@@ -306,11 +304,6 @@ void Renderer_RenderFlare(const FlareWindow *win,
 
             float ry = listY + (v * rowH);
             Rectangle rowRec = { rowX, ry, rowW, rowH - 5.0f };
-
-            // Mouse hover selection
-            if (CheckCollisionPointRec(mousePos, rowRec)) {
-                search->selected_index = idx;
-            }
 
             bool isSelected = (idx == search->selected_index);
 

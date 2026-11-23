@@ -22,6 +22,7 @@ int main(void) {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flare");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL); // Prevent Escape key from closing window/terminating process
+    HideCursor();         // Hide mouse cursor inside app perimeter
 
     // 2. Initialize native Win32 window integration
     void *hwnd = GetWindowHandle();
@@ -109,9 +110,8 @@ int main(void) {
                 Search_SelectPrev(&search);
             }
 
-            // Enter opens the selected result (ensure Alt is not held so Alt+Enter hotkey toggles Flare)
-            bool altDown = IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT);
-            if (kb.enter_pressed && !altDown && search.result_count > 0) {
+            // Enter opens the selected result
+            if (kb.enter_pressed && search.result_count > 0) {
                 if (search.selected_index >= 0 && search.selected_index < search.result_count) {
                     SearchResultItem *res = &search.results[search.selected_index];
                     if (strcmp(res->category_label, "Web Search") != 0 &&
@@ -127,33 +127,6 @@ int main(void) {
             if (anim.state == ANIM_STATE_OPEN) {
                 if (Window_CheckFocusLost()) {
                     Anim_StartClose(&anim);
-                }
-
-                // Mouse click on result rows
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                    Vector2 mousePos = GetMousePosition();
-                    float listY = 84.0f + 16.0f + 28.0f;
-                    float rowH = 65.0f;
-                    float rowW = (float)win->width - 28.0f;
-                    int visibleCount = search.result_count - search.scroll_offset;
-                    if (visibleCount > MAX_VISIBLE_ROWS) visibleCount = MAX_VISIBLE_ROWS;
-
-                    for (int v = 0; v < visibleCount; v++) {
-                        int idx = search.scroll_offset + v;
-                        float ry = listY + (v * rowH);
-                        Rectangle rowRec = { 14.0f, ry, rowW, rowH - 5.0f };
-                        if (CheckCollisionPointRec(mousePos, rowRec)) {
-                            search.selected_index = idx;
-                            SearchResultItem *res = &search.results[idx];
-                            if (strcmp(res->category_label, "Web Search") != 0 &&
-                                strcmp(res->category_label, "Calculation") != 0) {
-                                History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
-                            }
-                            Applications_Execute(res->path, res->is_command, res->title);
-                            Anim_StartClose(&anim);
-                            break;
-                        }
-                    }
                 }
             }
 
