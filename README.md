@@ -1,4 +1,4 @@
-# <img src="resources/flare.png" width="36" height="36"  alt="Flare Logo"/> Flare – Desktop Search Launcher for Windows
+# <img src="resources/flare.png" width="36" height="36" alt="Flare Logo"/> Flare – Desktop Search Launcher for Windows
 
 A fast, lightweight, native-feeling desktop search launcher for Windows inspired by macOS Spotlight and Raycast.
 
@@ -29,11 +29,11 @@ Built with **C**, **raylib**, and the **Win32 API**.
   - Multi-monitor support: dynamically centers on the monitor under the cursor.
   - Focus loss & click-outside detection.
 - **Keyboard Shortcuts**:
-  - `Alt + Space`: Global hotkey to open / toggle Flare from anywhere in Windows.
+  - `Alt + Enter` or `Alt + Space`: Global hotkey to open / toggle Flare from anywhere in Windows.
   - `Escape`: Hides Flare to the background (remains running quietly for instant reopening).
   - `Up / Down`: Navigates search results with smooth window scrolling.
   - `Enter`: Launches the selected application or executes system command.
-  - **Pure Keyboard-Driven Navigation**: Mouse cursor is completely hidden and unusable inside the window perimeter, ensuring it never blocks or interferes with `Up` / `Down` arrow keys.
+  - Mouse hover & click to immediately launch.
 - **Fast Search Engine**:
   - Automatically indexes Start Menu applications and common Windows tools.
   - **Inline Math Calculator**: Evaluates arithmetic expressions in real-time (`2+2`, `15*6`, `100/4`, `(12+8)*3`, `2^10`, `sqrt(144)`, percentages, `pi`, `e`, etc.). Pressing `Enter` automatically copies the answer to your Windows clipboard!
