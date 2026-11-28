@@ -79,13 +79,6 @@ static LRESULT CALLBACK FlareSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, L
             }
             break;
 
-        case WM_SETCURSOR:
-            if (LOWORD(lParam) == HTCLIENT) {
-                SetCursor(NULL);
-                return TRUE;
-            }
-            break;
-
         case WM_ACTIVATE:
             if (LOWORD(wParam) == WA_INACTIVE) {
                 s_focusLost = true;

@@ -298,6 +298,8 @@ void Renderer_RenderFlare(const FlareWindow *win,
         int visibleCount = search->result_count - search->scroll_offset;
         if (visibleCount > MAX_VISIBLE_ROWS) visibleCount = MAX_VISIBLE_ROWS;
 
+        Vector2 mousePos = GetMousePosition();
+
         for (int v = 0; v < visibleCount; v++) {
             int idx = search->scroll_offset + v;
             SearchResultItem *res = &search->results[idx];
@@ -306,13 +308,19 @@ void Renderer_RenderFlare(const FlareWindow *win,
             Rectangle rowRec = { rowX, ry, rowW, rowH - 5.0f };
 
             bool isSelected = (idx == search->selected_index);
+            bool isHovered = CheckCollisionPointRec(mousePos, rowRec);
 
-            // Selection highlight pill with subtle border
+            // Selection highlight pill with subtle border, or hover highlight pill
             if (isSelected) {
                 Color selBg = (Color){ 255, 255, 255, 28 };
                 Color selBorder = (Color){ 255, 255, 255, 38 };
                 DrawRectangleRounded(rowRec, 0.16f, 8, selBg);
                 DrawRectangleRoundedLines(rowRec, 0.16f, 8, 1.0f, selBorder);
+            } else if (isHovered) {
+                Color hovBg = (Color){ 255, 255, 255, 14 };
+                Color hovBorder = (Color){ 255, 255, 255, 22 };
+                DrawRectangleRounded(rowRec, 0.16f, 8, hovBg);
+                DrawRectangleRoundedLines(rowRec, 0.16f, 8, 1.0f, hovBorder);
             }
 
             // Left Icon (+20% scaled: 40x40)
@@ -336,21 +344,21 @@ void Renderer_RenderFlare(const FlareWindow *win,
             // Title (Segoe UI Semibold 22px)
             float titleX = iconX + iconSize + 16.0f;
             float titleY = rowRec.y + (rowRec.height - 22.0f) / 2.0f;
-            Color titleColor = isSelected ? (Color){ 255, 255, 255, 255 } : (Color){ 240, 244, 250, 250 };
+            Color titleColor = (isSelected || isHovered) ? (Color){ 255, 255, 255, 255 } : (Color){ 240, 244, 250, 250 };
             DrawTextEx(s_fontTitle, res->title, (Vector2){ titleX, titleY }, 22.0f, 1.0f, titleColor);
 
             // Subtitle (crisp, secondary tone 17px)
             Vector2 titleMetrics = MeasureTextEx(s_fontTitle, res->title, 22.0f, 1.0f);
             float subX = titleX + titleMetrics.x + 14.0f;
             float subY = titleY + 3.0f;
-            Color subColor = isSelected ? (Color){ 175, 182, 195, 220 } : (Color){ 135, 140, 150, 190 };
+            Color subColor = (isSelected || isHovered) ? (Color){ 175, 182, 195, 220 } : (Color){ 135, 140, 150, 190 };
             DrawTextEx(s_fontSubtitle, res->subtitle, (Vector2){ subX, subY }, 17.0f, 1.0f, subColor);
 
             // Right Category Label ("Application", "Command", "Math" 16px)
             Vector2 catMetrics = MeasureTextEx(s_fontSubtitle, res->category_label, 16.0f, 1.0f);
             float catX = rowRec.x + rowRec.width - catMetrics.x - 18.0f;
             float catY = titleY + 3.0f;
-            Color catColor = isSelected ? (Color){ 180, 185, 200, 220 } : (Color){ 130, 135, 148, 180 };
+            Color catColor = (isSelected || isHovered) ? (Color){ 180, 185, 200, 220 } : (Color){ 130, 135, 148, 180 };
             DrawTextEx(s_fontSubtitle, res->category_label, (Vector2){ catX, catY }, 16.0f, 1.0f, catColor);
         }
     }

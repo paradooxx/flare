@@ -29,11 +29,11 @@ Built with **C**, **raylib**, and the **Win32 API**.
   - Multi-monitor support: dynamically centers on the monitor under the cursor.
   - Focus loss & click-outside detection.
 - **Keyboard Shortcuts**:
-  - `Alt + Enter` or `Alt + Space`: Global hotkey to open / toggle Flare from anywhere in Windows.
+  - `Alt + Space`: Global hotkey to open / toggle Flare from anywhere in Windows.
   - `Escape`: Hides Flare to the background (remains running quietly for instant reopening).
-  - `Up / Down`: Navigates search results with smooth window scrolling.
+  - `Up / Down`: Navigates search results with smooth window scrolling (mouse hover does not hijack keyboard navigation).
   - `Enter`: Launches the selected application or executes system command.
-  - Mouse hover & click to immediately launch.
+  - Mouse hover & click: Pointing at any search result highlights it, and clicking selects and launches it immediately.
 - **Fast Search Engine**:
   - Automatically indexes Start Menu applications and common Windows tools.
   - **Inline Math Calculator**: Evaluates arithmetic expressions in real-time (`2+2`, `15*6`, `100/4`, `(12+8)*3`, `2^10`, `sqrt(144)`, percentages, `pi`, `e`, etc.). Pressing `Enter` automatically copies the answer to your Windows clipboard!

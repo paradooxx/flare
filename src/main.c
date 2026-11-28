@@ -8,6 +8,7 @@
 #include "history.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 int main(void) {
     // 0. Enable Windows Per-Monitor High-DPI awareness (prevents OS bitmap scaling & blurring)
@@ -22,7 +23,6 @@ int main(void) {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Flare");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL); // Prevent Escape key from closing window/terminating process
-    HideCursor();         // Hide mouse cursor inside app perimeter
 
     // 2. Initialize native Win32 window integration
     void *hwnd = GetWindowHandle();
@@ -73,6 +73,7 @@ int main(void) {
     // 4. Main application loop
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
+        static Vector2 s_lastMousePos = { -1.0f, -1.0f };
 
         // Check global hotkey (Alt + Space)
         if (Window_CheckHotkeyTriggered()) {
@@ -91,6 +92,7 @@ int main(void) {
                 Window_CheckFocusLost();
                 Anim_StartOpen(&anim);
             }
+            s_lastMousePos = GetMousePosition();
         }
 
         // Process keyboard input and interaction when visible
@@ -103,11 +105,14 @@ int main(void) {
             }
 
             // Arrow keys navigate search results
+            bool arrowNavActive = false;
             if (kb.arrow_down_pressed) {
                 Search_SelectNext(&search);
+                arrowNavActive = true;
             }
             if (kb.arrow_up_pressed) {
                 Search_SelectPrev(&search);
+                arrowNavActive = true;
             }
 
             // Enter opens the selected result
@@ -128,11 +133,69 @@ int main(void) {
                 if (Window_CheckFocusLost()) {
                     Anim_StartClose(&anim);
                 }
+
+                Vector2 currentMousePos = GetMousePosition();
+
+                // On arrow navigation or text change, keep s_lastMousePos synchronized
+                // so stationary mouse cursor doesn't fight keyboard navigation
+                if (arrowNavActive) {
+                    s_lastMousePos = currentMousePos;
+                } else {
+                    float mouseDist = fabsf(currentMousePos.x - s_lastMousePos.x) +
+                                      fabsf(currentMousePos.y - s_lastMousePos.y);
+
+                    // When user physically moves the mouse, update selection to the row pointed at
+                    if (mouseDist >= 2.0f) {
+                        s_lastMousePos = currentMousePos;
+                        float listY = 84.0f + 16.0f + 28.0f;
+                        float rowH = 65.0f;
+                        float rowW = (float)win->width - 28.0f;
+                        int visibleCount = search.result_count - search.scroll_offset;
+                        if (visibleCount > MAX_VISIBLE_ROWS) visibleCount = MAX_VISIBLE_ROWS;
+
+                        for (int v = 0; v < visibleCount; v++) {
+                            int idx = search.scroll_offset + v;
+                            float ry = listY + (v * rowH);
+                            Rectangle rowRec = { 14.0f, ry, rowW, rowH - 5.0f };
+                            if (CheckCollisionPointRec(currentMousePos, rowRec)) {
+                                search.selected_index = idx;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Mouse click on result rows: select and activate
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                    float listY = 84.0f + 16.0f + 28.0f;
+                    float rowH = 65.0f;
+                    float rowW = (float)win->width - 28.0f;
+                    int visibleCount = search.result_count - search.scroll_offset;
+                    if (visibleCount > MAX_VISIBLE_ROWS) visibleCount = MAX_VISIBLE_ROWS;
+
+                    for (int v = 0; v < visibleCount; v++) {
+                        int idx = search.scroll_offset + v;
+                        float ry = listY + (v * rowH);
+                        Rectangle rowRec = { 14.0f, ry, rowW, rowH - 5.0f };
+                        if (CheckCollisionPointRec(currentMousePos, rowRec)) {
+                            search.selected_index = idx;
+                            SearchResultItem *res = &search.results[idx];
+                            if (strcmp(res->category_label, "Web Search") != 0 &&
+                                strcmp(res->category_label, "Calculation") != 0) {
+                                History_Add(&hist, res->title, res->path, res->subtitle, res->category_label, res->is_command);
+                            }
+                            Applications_Execute(res->path, res->is_command, res->title);
+                            Anim_StartClose(&anim);
+                            break;
+                        }
+                    }
+                }
             }
 
             // Update search state in real-time when query changed
             if (kb.text_changed) {
                 Search_Execute(&search, &apps, &hist, kb.text);
+                s_lastMousePos = GetMousePosition();
             }
 
             // Dynamically adjust window height based on active search/suggestion count
